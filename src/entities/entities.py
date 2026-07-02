@@ -91,3 +91,50 @@ class OrdenServicio:
         print(f"Pago de la orden {self.orden_id} procesado por "
               f"${self.monto_total:.2f}")
         return True
+
+# ==============================================================================
+# COMMIT 2 - EVOLUCION DEL DOMINIO (nueva regla de negocio)
+# ==============================================================================
+#
+# "Si al finalizar una revision de recargos, el PROMEDIO de recargos de
+# todos los servicios contratados en la orden supera los $15.00, O si el
+# empleado responsable es Personal Auxiliar (cargo inicia con 'AUX') Y la
+# orden tiene un ServicioPersonalExtra con mas de 10 ordenes en espera,
+# el sistema debe activar automaticamente un protocolo de restriccion,
+# cambiando el estado de la orden a 'CUENTA_SUSPENDIDA'."
+#
+# Esta regla vive aqui (en entities.py, junto a OrdenServicio) porque
+# depende de la RELACION entre varios servicios y del empleado responsable,
+# nunca de un solo servicio individual. Por eso NO puede vivir dentro de
+# ServicioMenu ni de ServicioPersonalExtra.
+# ==============================================================================
+
+def revisar_y_aplicar_restriccion(orden: OrdenServicio) -> None:
+    """
+    Ejecuta la revision de saldos de una OrdenServicio y aplica el
+    protocolo de restriccion si corresponde.
+    """
+    servicios = orden.servicios_contratados  # tupla inmutable
+
+    if not servicios:
+        return
+
+    total_recargos = sum(s.calcular_recargo() for s in servicios)
+    promedio_recargos = total_recargos / len(servicios)
+
+    condicion_promedio = promedio_recargos > 15.00
+
+    empleado_es_aux = orden.responsable.es_personal_auxiliar()
+    hay_personal_extra_criticos = any(
+        isinstance(s, ServicioPersonalExtra) and s.ordenes_en_espera > 10
+        for s in servicios
+    )
+    condicion_aux = empleado_es_aux and hay_personal_extra_criticos
+
+    if condicion_promedio or condicion_aux:
+        orden.estado = "CUENTA_SUSPENDIDA"
+        print(f"[ALERTA] Orden {orden.orden_id} -> estado cambiado a "
+              f"'CUENTA_SUSPENDIDA' (promedio_recargos=${promedio_recargos:.2f})")
+    else:
+        print(f"Orden {orden.orden_id} dentro de parametros normales "
+              f"(promedio_recargos=${promedio_recargos:.2f})")
