@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import date, datetime
+import itertools
 
 
 class ServicioContratado(ABC):
@@ -57,3 +59,45 @@ class ServicioPersonalExtra(ServicioContratado):
 
     def calcular_recargo(self) -> float:
         return self.cantidad_excedente * self._factor_demanda()
+    
+@dataclass(frozen=True)
+class Pago():
+    pago_id: int
+    orden_id_fk: int
+    fecha_pago: date
+    monto: float
+    metodo_pago: str
+    tipo_pago: str
+    
+    __contador=itertools.count(1)
+    
+    @classmethod
+    def crear(cls, orden_id_fk:int, fecha_pago:date, monto:float, metodo_pago:str, tipo_pago:str) -> "Pago":
+        return cls(
+            pago_id = next(cls.__contador),
+            orden_id_fk = orden_id_fk,
+            fecha_pago = fecha_pago,
+            monto = monto,
+            metodo_pago = metodo_pago,
+            tipo_pago = tipo_pago,
+        )
+    
+@dataclass(frozen=True)
+class factura():
+    factura_id: int
+    orden_id_fk: int
+    fecha_emision: datetime
+    monto_facturado: float
+    Estado_CDFI: str
+    
+    __contador = itertools.count(1)
+    
+    @classmethod
+    def crear(cls, factura_id:int, orden_id_fk:int, fecha_emision:datetime, monto_facturado:float, Estado_CDFI:str,):
+        return cls(
+            factura_id = next(cls.__contador),
+            orden_id_fk = orden_id_fk,
+            fecha_emision = fecha_emision,
+            monto_facturado = monto_facturado,
+            Estado_CDFI = Estado_CDFI,
+        )
