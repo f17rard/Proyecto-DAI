@@ -1,5 +1,5 @@
 from value_objects.value_objects import ServicioContratado, ServicioPersonalExtra
-
+from datetime import datetime
 
 class Empleado:
     """
@@ -91,6 +91,71 @@ class OrdenServicio:
         print(f"Pago de la orden {self.orden_id} procesado por "
               f"${self.monto_total:.2f}")
         return True
+    
+    def generar_control_calidad(self) -> None:
+        pass
+
+class ControlCalidad:
+    """
+    Entidad que representa el control de calidad de una orden de servicio.
+    Esta entidad se encarga de verificar que todos los servicios contratados
+    cumplan con los estándares de calidad establecidos por la empresa.
+    """
+
+    def __init__(self, orden: OrdenServicio, controlid: int, tipo_manipulacion: str, uso_mascarilla: bool, uso_guantes: bool, red_cabello: bool, observaciones: str):
+        self.orden_id = orden
+        self.controlid = controlid
+        self.tipo_manipulacion = tipo_manipulacion
+        self.uso_mascarilla = uso_mascarilla
+        self.uso_guantes = uso_guantes
+
+
+    def verificar_calidad(self) -> bool:
+        """
+        Verifica la calidad de todos los servicios contratados en la orden.
+        Retorna True si todos los servicios cumplen con los estándares,
+        False en caso contrario.
+        """
+        for servicio in self.orden.servicios_contratados:
+            if not self._verificar_servicio(servicio):
+                return False
+        return True
+
+    def _verificar_servicio(self, servicio: ServicioContratado) -> bool:
+        """
+        Verifica la calidad de un servicio individual.
+        Este método puede ser extendido para incluir criterios específicos
+        de verificación según el tipo de servicio.
+        """
+        # Implementación simplificada: siempre retorna True
+        return True
+
+class Conformidad:
+    """
+    Entidad que representa la conformidad del cliente con los servicios
+    prestados en una orden de servicio. Esta entidad se encarga de registrar
+    la satisfacción del cliente y cualquier comentario adicional.
+    """
+
+    def __init__(self, orden: OrdenServicio, conformidad_id: int, fecha_conformidad: datetime, observacion_cliente: str, servicio_conforme: bool, firma_cliente: str, firma_sazonora: str):
+        self.orden_id = orden
+        self.conformidad_id = conformidad_id
+        self.fecha_conformidad = fecha_conformidad
+        self.observacion_cliente = observacion_cliente
+        self.servicio_conforme = servicio_conforme
+        self.firma_cliente = firma_cliente
+        self.firma_sazonora = firma_sazonora
+
+
+    def registrar_conformidad(self) -> None:
+        """
+        Registra la conformidad del cliente con los servicios prestados.
+        """
+        if self.servicio_conforme:
+            print(f"Cliente satisfecho con la orden {self.orden_id}.")
+        else:
+            print(f"Cliente insatisfecho con la orden {self.orden_id}. "
+                  f"Comentarios: {self.observacion_cliente}")
 
 # ==============================================================================
 # COMMIT 2 - EVOLUCION DEL DOMINIO (nueva regla de negocio)
